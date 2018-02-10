@@ -1,0 +1,217 @@
+---
+title: "Replicate"
+output:
+  html_document: default
+  github_document: default
+---
+
+```{r, fig.height=8, fig.width=10, message = FALSE}
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(plyr)
+library(reshape2)
+library(psych)
+
+set.seed(123457)
+data = rnorm(1000000, mean = 0, sd = 1)
+data = as.data.frame(data)
+library(ggplot2)
+library(gridExtra)
+ggplot(data, aes(x = data, fill = "red")) +
+  geom_histogram(bins=29) +
+  geom_vline(xintercept=c(-1.75, 1.75)) +
+  annotate("text", label = "Few value are low,", x = -3.5, y = 75000) +
+  annotate("text", label = "and few are extremely low", x = -3.4, y = 70000) +
+  annotate("text", label = "Few value are high", x = 3.5, y = 75000) +
+  annotate("text", label = "and few are extremely high", x = 3.4, y  = 70000) +
+  annotate("text", label = "The tallest bars are here", x = 0, y = 150000) +
+  annotate("text", label = "It means most of the values are average", x = 0, y = 145000) +
+  labs(title = "Meet The Normal Distribution", x = "Values", y = "Number Of Values(Frequency)") +
+  theme(legend.position = 'none')
+```
+
+```{r, fig.height=8, fig.width=10}
+# Values for hists
+bad = c(0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,4,4,5,5,6)
+average = c(0,1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,4,4,4,4,4,5,5,6)
+good = c(0,1,1,2,2,3,3,3,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,6)
+uniform = c(0,0,0,0,1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,4,5,5,5,5,6,6,6,6)
+
+bad <- as.data.frame(bad)
+average <- as.data.frame(average)
+good <- as.data.frame(good)
+uniform <- as.data.frame(uniform)
+
+c = ggplot(bad, aes(x = bad, fill = "red")) +
+  geom_histogram(bins = 7) + 
+  annotate("text", label = "Cluster in the Low", x = 4, y = 7.5) +
+  annotate("text", label = "Ratings Area(likely)", x = 4, y = 6.7) +
+  geom_segment(aes(x = 2.5, xend = 1.6, y = 7.5, yend = 7.5), arrow = arrow(length = unit(0.2, "cm"))) +
+  theme(legend.position = 'none',
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+b = ggplot(average, aes(x = average, fill = "red")) +
+  geom_histogram(bins = 7) + 
+  annotate("text", label = "Cluster in the", x = 5.4, y = 7.5) +
+  annotate("text", label = "Average Ratings", x = 5.4, y = 6.7) +
+  annotate("text", label = "Area(Very Likely)", x = 5.4, y = 5.9) + 
+  geom_segment(aes(x = 4.3, xend = 3.5, y = 7.5, yend = 7.5), arrow = arrow(length = unit(0.2, "cm"))) +
+  theme(legend.position = 'none',
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+a = ggplot(good, aes(x = good, fill = "red")) +
+  geom_histogram(bins = 7) + 
+  annotate("text", label = "Cluster in the High", x = 2, y = 7.5) +
+  annotate("text", label = "Ratings Area(likely)", x = 2, y = 6.7) +
+  geom_segment(aes(x = 3.6, xend = 4.5, y = 7.5, yend = 7.5), arrow = arrow(length = unit(0.2, "cm"))) +
+  theme(legend.position = 'none',
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+d = ggplot(uniform, aes(x = uniform, fill = "red")) +
+  geom_histogram(bins = 7) + 
+  annotate("text", label = "No Prominent Clusters", x = 3, y = 7.5) +
+  annotate("text", label = "Unlikely", x = 3, y = 6.7) +
+  theme(legend.position = 'none',
+        axis.title = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+grid.arrange(a, b, c, d, ncol = 2, top="Four Possible Distributions of The Ratings For a Single Movie")
+```
+
+##IMDB, Rotten Tomatoes, Fandango Or Metacritic?
+```{r}
+new_ds = read.csv("~/Desktop/Opendata/Data_science/replication/movie_ratings_16_17.csv")
+head(new_ds)
+```
+
+```{r}
+a = ggplot(new_ds, aes(x = imdb, fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(3, 7)) +
+  labs(x = 'IMDB \n(0-10)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+
+b = ggplot(new_ds, aes(x = fandango, fill = "red")) +
+  geom_histogram(bins = 7) +
+  geom_vline(xintercept=c(1.5, 3.5)) +
+  labs(x = 'Fandango \n (0-5 Stars)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+
+c = ggplot(new_ds, aes(x = metascore, fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(30, 75)) +
+  labs(x = 'Metascore \n (0-100)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+
+d = ggplot(new_ds, aes(x = tmeter, fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(30, 70)) +
+  labs(x = 'Tomatometer \n(0-100%)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+
+grid.arrange(a, b, c, d, ncol = 2, top="Looking For Something Normal")
+```
+
+```{r}
+ds = read.csv("~/Desktop/Opendata/Data_science/replication/movie_metadata.csv")
+
+#remove na
+ds = na.omit(ds)
+
+ggplot(ds, aes(x = ds$imdb_score, fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(3, 7)) +
+  labs(title = "The Distribution For 4917 IMDB Movie Ratings Mirrors \nThe One Above" ,x = 'Rating') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+```
+
+```{r}
+fte_ds = read.csv("~/Desktop/Opendata/Data_science/replication/fandango_score_comparison.csv")
+head(fte_ds)
+```
+
+```{r}
+
+a = ggplot(fte_ds, aes(x = fte_ds$IMDB, fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(3, 7)) +
+  labs(x = 'IMDB \n(0-10)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+a
+
+b = ggplot(fte_ds, aes(x = fte_ds$Fandango_Stars, fill = "red")) +
+  geom_histogram(bins = 7) +
+  geom_vline(xintercept=c(1.5, 3.5)) +
+  labs(x = 'Fandango \n (0-5 Stars)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+
+c = ggplot(fte_ds, aes(x = fte_ds$Metacritic, fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(30, 75)) +
+  labs(x = 'Metascore \n (0-100)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+c
+
+d = ggplot(fte_ds, aes(x = fte_ds$RottenTomatoes , fill = "red")) +
+  geom_histogram(bins = 20) +
+  geom_vline(xintercept=c(30, 70)) +
+  labs(x = 'Tomatometer \n(0-100%)') +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank())
+d
+
+grid.arrange(a, b, c, d, ncol = 2, top="Different Movie, Same Story")
+
+```
+
+```{r}
+a = cor(new_ds$fandango, new_ds$imdb)
+b = cor(new_ds$fandango, new_ds$metascore)
+
+tibble::tibble(a,b)
+```
+
+```{r, fig.height=8, fig.width=10}
+set.seed(123457)
+data = rnorm(1000000, mean = 0, sd = 1)
+data = as.data.frame(data)
+
+ggplot(data, aes(x = data, fill = "red")) +
+  geom_histogram(bins=29) +
+  geom_vline(xintercept=c(-1.75, 1.75)) +
+  annotate("text", label = "Few Movies Are", x = -3.5, y = 75000) +
+  annotate("text", label = "Terrible", x = -3.4, y = 70000) +
+  annotate("text", label = "Few Moviews Are", x = 3.5, y = 75000) +
+  annotate("text", label = "Outstanding", x = 3.4, y = 70000) +
+  annotate("text", label = "Most Of The Movies", x = 0, y = 150000) +
+  annotate("text", label = "Are Average", x = 0, y = 145000) +
+  labs(title = "Movie Ratings Should Reflect \nMovie Quality", x = "Rating Values") +
+  theme(legend.position = 'none',
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+```
+
